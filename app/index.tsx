@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 type Player = "X" | "O" | null;
 type Board = Player[];
@@ -9,12 +9,58 @@ export default function Index() {
   const [currentPlayer, setCurrentPlayer] = useState<Player>("X");
   const [winner, setWinner] = useState<Player | "draw">(null);
 
+  const checkWinner = (squares: Board) => {
+    const lines = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6],
+    ];
+
+    for (const [a, b, c] of lines) {
+      if (
+        squares[a] &&
+        squares[a] === squares[b] &&
+        squares[a] === squares[c]
+      ) {
+        return squares[a];
+      }
+    }
+
+    return null;
+  };
+
+  const checkDraw = (squares: Board) => {
+    const check = (square: any) => square !== null;
+    return squares.every(check) && !checkWinner(squares);
+  };
+
   const handlePress = (index: number) => {
     const newBoard = [...board];
     newBoard[index] = currentPlayer;
     setBoard(newBoard);
 
-    setCurrentPlayer(currentPlayer === "X" ? "O" : "X");
+    const gameWinner = checkWinner(newBoard);
+    console.log(gameWinner);
+    if (gameWinner) {
+      setWinner(gameWinner);
+      Alert.alert(`Jogador ${gameWinner} venceu!`);
+    } else if (checkDraw(newBoard)) {
+      setWinner("draw");
+      Alert.alert(`Jogador ${gameWinner} venceu!`);
+    } else {
+      setCurrentPlayer(currentPlayer === "X" ? "O" : "X");
+    }
+  };
+
+  const resetGame = () => {
+    setBoard(Array(9).fill(null));
+    setCurrentPlayer("X");
+    setWinner(null);
   };
 
   const cell = (index: number) => {
@@ -28,7 +74,7 @@ export default function Index() {
   return (
     <View style={style.container}>
       <Text style={style.title}>Jogo da Velha</Text>
-      <Text style={style.status}>Vencedor</Text>
+      <Text style={style.status}>Vencedor: {winner}</Text>
 
       <View style={style.board}>
         <View style={style.row}>
@@ -47,6 +93,10 @@ export default function Index() {
           {cell(8)}
         </View>
       </View>
+
+      <TouchableOpacity onPress={resetGame}>
+        <Text>Reiniciar Jogo</Text>
+      </TouchableOpacity>
     </View>
   );
 }
